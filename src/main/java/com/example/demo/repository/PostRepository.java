@@ -27,4 +27,8 @@ public class PostRepository {
     public List<Post> findAll() {
         return new ArrayList<>(posts.values());
     }
+
+    public void deleteByPostId(Long postId) {
+        posts.remove(postId);
+    }
 }

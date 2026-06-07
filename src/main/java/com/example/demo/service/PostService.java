@@ -193,4 +193,23 @@ public class PostService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
         }
     }
+
+    public void deletePost(Long userId, Long postId) {
+        validateSignedInUser(userId);
+
+        Post post = postRepository.findByPostId(postId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND,
+                        "게시글을 찾을 수 없습니다."
+                ));
+
+        if (!post.getAuthorId().equals(userId)) {
+            throw new ApiException(
+                    HttpStatus.FORBIDDEN,
+                    "게시글 삭제 권한이 없습니다."
+            );
+        }
+
+        postRepository.deleteByPostId(postId);
+    }
 }

@@ -68,8 +68,15 @@ public class PostController {
     }
 
     @DeleteMapping("/{post_id}")
-    public String deletePost(){
-        return "게시글 삭제 API";
+    public ResponseEntity<ApiResponse<Void>> deletePost(
+            @RequestHeader(value = "user_id", required = false) Long userId,
+            @PathVariable("post_id") Long postId
+    ) {
+        postService.deletePost(userId, postId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("게시글 삭제에 성공하였습니다.", null));
     }
 
     @PostMapping("/{post_id}/comments")
