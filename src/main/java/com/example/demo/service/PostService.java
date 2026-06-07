@@ -351,4 +351,33 @@ public class PostService {
                 true
         );
     }
+
+    public PostLikeResponse deleteLike(Long userId, Long postId) {
+        validateSignedInUser(userId);
+
+        Post post = postRepository.findByPostId(postId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND,
+                        "게시글을 찾을 수 없습니다."
+                ));
+
+        userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.UNAUTHORIZED,
+                        "로그인이 필요합니다."
+                ));
+
+        boolean alreadyLiked = likeRepository.existsByPostIdAndUserId(postId, userId);
+
+        if (alreadyLiked) {
+            likeRepository.delete(postId, userId);
+            post.decreaseLikeCount();
+        }
+
+        return new PostLikeResponse(
+                post.getPostId(),
+                post.getLikeCount(),
+                false
+        );
+    }
 }

@@ -142,7 +142,14 @@ public class PostController {
     }
 
     @DeleteMapping("/{post_id}/likes")
-    public String deleteLike(){
-        return "좋아요 수 삭제 API";
+    public ResponseEntity<ApiResponse<PostLikeResponse>> deleteLike(
+            @RequestHeader(value = "user_id", required = false) Long userId,
+            @PathVariable("post_id") Long postId
+    ) {
+        PostLikeResponse response = postService.deleteLike(userId, postId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("좋아요가 취소되었습니다.", response));
     }
 }
