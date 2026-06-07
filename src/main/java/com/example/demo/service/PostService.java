@@ -17,23 +17,30 @@ import com.example.demo.dto.post.PostListResponse;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import com.example.demo.domain.Comment;
+import com.example.demo.dto.post.PostDetailCommentResponse;
+import com.example.demo.dto.post.PostDetailResponse;
+import com.example.demo.repository.CommentRepository;
+
 @Service
 public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final LoginSessionRepository loginSessionRepository;
+    private final CommentRepository commentRepository;
 
     public PostService(
             PostRepository postRepository,
             UserRepository userRepository,
-            LoginSessionRepository loginSessionRepository
+            LoginSessionRepository loginSessionRepository,
+            CommentRepository commentRepository
     ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.loginSessionRepository = loginSessionRepository;
+        this.commentRepository = commentRepository;
     }
-
     public CreatePostResponse createPost(Long userId, CreatePostRequest request) {
         validateSignedInUser(userId);
         validateCreatePostRequest(request);
@@ -98,5 +105,56 @@ public class PostService {
                 .toList();
 
         return new PostListResponse(posts);
+    }
+
+    public PostDetailResponse getPost(Long postId) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        Post post = postRepository.findByPostId(postId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND,
+                        "게시글을 찾을 수 없습니다."
+                ));
+
+        post.increaseViewCount();
+
+        User author = userRepository.findByUserId(post.getAuthorId())
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "서버 내부 오류가 발생하였습니다."
+                ));
+
+        List<PostDetailCommentResponse> comments = commentRepository.findAllByPostId(postId)
+                .stream()
+                .map(comment -> {
+                    User commentAuthor = userRepository.findByUserId(comment.getAuthorId())
+                            .orElseThrow(() -> new ApiException(
+                                    HttpStatus.INTERNAL_SERVER_ERROR,
+                                    "서버 내부 오류가 발생하였습니다."
+                            ));
+
+                    return new PostDetailCommentResponse(
+                            comment.getCommentId(),
+                            comment.getContent(),
+                            comment.getCreatedAt().format(formatter),
+                            commentAuthor.getNickname(),
+                            commentAuthor.getProfileImage()
+                    );
+                })
+                .toList();
+
+        return new PostDetailResponse(
+                post.getPostId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getImage(),
+                post.getLikeCount(),
+                post.getCommentCount(),
+                post.getViewCount(),
+                post.getCreatedAt().format(formatter),
+                author.getNickname(),
+                author.getProfileImage(),
+                comments
+        );
     }
 }

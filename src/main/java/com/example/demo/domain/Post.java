@@ -61,4 +61,8 @@ public class Post {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
 }
