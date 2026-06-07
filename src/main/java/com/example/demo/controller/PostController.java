@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.ApiResponse;
 import com.example.demo.dto.post.CreatePostRequest;
 import com.example.demo.dto.post.CreatePostResponse;
+import com.example.demo.dto.post.PostListResponse;
 import com.example.demo.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,10 +32,13 @@ public class PostController {
     }
 
     @GetMapping
-    public String getPostList(){
-        return "게시글 목록 조회 API";
-    }
+    public ResponseEntity<ApiResponse<PostListResponse>> getPostList() {
+        PostListResponse response = postService.getPostList();
 
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("게시글 목록 조회에 성공하였습니다.", response));
+    }
     @GetMapping("/{post_id}")
     public String getPost(){
         return "게시글 조회 API";

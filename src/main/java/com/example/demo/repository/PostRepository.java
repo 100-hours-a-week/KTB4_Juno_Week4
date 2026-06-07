@@ -3,9 +3,7 @@ package com.example.demo.repository;
 import com.example.demo.domain.Post;
 import org.springframework.stereotype.Repository;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class PostRepository {
@@ -24,5 +22,9 @@ public class PostRepository {
 
     public Optional<Post> findByPostId(Long postId) {
         return Optional.ofNullable(posts.get(postId));
+    }
+
+    public List<Post> findAll() {
+        return new ArrayList<>(posts.values());
     }
 }

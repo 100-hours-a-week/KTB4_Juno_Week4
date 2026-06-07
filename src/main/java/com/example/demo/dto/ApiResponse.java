@@ -10,7 +10,7 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> success(String message, T data){
-        return new ApiResponse<>(message, null);
+        return new ApiResponse<>(message, data);
     }
 
     public static ApiResponse<Void> error(String message){

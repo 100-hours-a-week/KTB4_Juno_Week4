@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.domain.Post;
+import com.example.demo.domain.User;
 import com.example.demo.dto.post.CreatePostRequest;
 import com.example.demo.dto.post.CreatePostResponse;
 import com.example.demo.exception.ApiException;
@@ -9,6 +10,12 @@ import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import com.example.demo.dto.post.PostListItemResponse;
+import com.example.demo.dto.post.PostListResponse;
+
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 public class PostService {
@@ -63,5 +70,33 @@ public class PostService {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    public PostListResponse getPostList() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        List<PostListItemResponse> posts = postRepository.findAll()
+                .stream()
+                .map(post -> {
+                    User author = userRepository.findByUserId(post.getAuthorId())
+                            .orElseThrow(() -> new ApiException(
+                                    HttpStatus.INTERNAL_SERVER_ERROR,
+                                    "서버 내부 오류가 발생하였습니다."
+                            ));
+
+                    return new PostListItemResponse(
+                            post.getPostId(),
+                            post.getTitle(),
+                            post.getLikeCount(),
+                            post.getCommentCount(),
+                            post.getViewCount(),
+                            post.getCreatedAt().format(formatter),
+                            author.getNickname(),
+                            author.getProfileImage()
+                    );
+                })
+                .toList();
+
+        return new PostListResponse(posts);
     }
 }
