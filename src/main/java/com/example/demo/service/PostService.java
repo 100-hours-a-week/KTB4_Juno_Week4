@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.dto.post.PostListItemResponse;
 import com.example.demo.dto.post.PostListResponse;
+import com.example.demo.dto.post.UpdatePostRequest;
+import com.example.demo.dto.post.UpdatePostResponse;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -156,5 +158,39 @@ public class PostService {
                 author.getProfileImage(),
                 comments
         );
+    }
+
+    public UpdatePostResponse updatePost(Long userId, Long postId, UpdatePostRequest request) {
+        validateSignedInUser(userId);
+        validateUpdatePostRequest(request);
+
+        Post post = postRepository.findByPostId(postId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND,
+                        "게시글을 찾을 수 없습니다."
+                ));
+
+        if (!post.getAuthorId().equals(userId)) {
+            throw new ApiException(
+                    HttpStatus.FORBIDDEN,
+                    "게시글 수정 권한이 없습니다."
+            );
+        }
+
+        post.update(
+                request.getTitle(),
+                request.getContent(),
+                request.getImage()
+        );
+
+        return new UpdatePostResponse(post.getPostId());
+    }
+
+    private void validateUpdatePostRequest(UpdatePostRequest request) {
+        if (request == null
+                || isBlank(request.getTitle())
+                || isBlank(request.getContent())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
+        }
     }
 }

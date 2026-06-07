@@ -5,6 +5,8 @@ import com.example.demo.dto.post.CreatePostRequest;
 import com.example.demo.dto.post.CreatePostResponse;
 import com.example.demo.dto.post.PostDetailResponse;
 import com.example.demo.dto.post.PostListResponse;
+import com.example.demo.dto.post.UpdatePostRequest;
+import com.example.demo.dto.post.UpdatePostResponse;
 import com.example.demo.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,8 +55,16 @@ public class PostController {
     }
 
     @PatchMapping("/{post_id}")
-    public String updatePost(){
-        return "게시글 수정 API";
+    public ResponseEntity<ApiResponse<UpdatePostResponse>> updatePost(
+            @RequestHeader(value = "user_id", required = false) Long userId,
+            @PathVariable("post_id") Long postId,
+            @RequestBody UpdatePostRequest request
+    ) {
+        UpdatePostResponse response = postService.updatePost(userId, postId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("게시글 수정에 성공하였습니다.", response));
     }
 
     @DeleteMapping("/{post_id}")
