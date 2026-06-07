@@ -1,10 +1,34 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ApiResponse;
+import com.example.demo.dto.post.CreatePostRequest;
+import com.example.demo.dto.post.CreatePostResponse;
+import com.example.demo.service.PostService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/posts")
 public class PostController {
+
+    private final PostService postService;
+
+    public PostController(PostService postService) {
+        this.postService = postService;
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<CreatePostResponse>> createPost(
+            @RequestHeader(value = "user_id", required = false) Long userId,
+            @RequestBody CreatePostRequest request
+    ) {
+        CreatePostResponse response = postService.createPost(userId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("게시글 작성에 성공하였습니다.", response));
+    }
 
     @GetMapping
     public String getPostList(){
@@ -14,11 +38,6 @@ public class PostController {
     @GetMapping("/{post_id}")
     public String getPost(){
         return "게시글 조회 API";
-    }
-
-    @PostMapping
-    public String createPost() {
-        return "게시글 작성 API";
     }
 
     @PatchMapping("/{post_id}")
@@ -55,5 +74,4 @@ public class PostController {
     public String deleteLike(){
         return "좋아요 수 삭제 API";
     }
-
 }
