@@ -1,8 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ApiResponse;
-import com.example.demo.dto.comment.UpdateCommentRequest;
-import com.example.demo.dto.comment.UpdateCommentResponse;
+import com.example.demo.dto.comment.*;
 import com.example.demo.dto.post.CreatePostRequest;
 import com.example.demo.dto.post.CreatePostResponse;
 import com.example.demo.dto.post.PostDetailResponse;
@@ -10,8 +9,6 @@ import com.example.demo.dto.post.PostListResponse;
 import com.example.demo.dto.post.UpdatePostRequest;
 import com.example.demo.dto.post.UpdatePostResponse;
 import com.example.demo.service.PostService;
-import com.example.demo.dto.comment.CreateCommentRequest;
-import com.example.demo.dto.comment.CreateCommentResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -115,8 +112,20 @@ public class PostController {
     }
 
     @DeleteMapping("/{post_id}/comments/{comment_id}")
-    public String deleteComment(){
-        return "댓글 삭제 API";
+    public ResponseEntity<ApiResponse<DeleteCommentResponse>> deleteComment(
+            @RequestHeader(value = "user_id", required = false) Long userId,
+            @PathVariable("post_id") Long postId,
+            @PathVariable("comment_id") Long commentId
+    ) {
+        DeleteCommentResponse response = postService.deleteComment(
+                userId,
+                postId,
+                commentId
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("댓글 삭제에 성공하였습니다.", response));
     }
 
     @PostMapping("/{post_id}/likes")

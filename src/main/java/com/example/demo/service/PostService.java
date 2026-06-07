@@ -29,7 +29,7 @@ import com.example.demo.repository.CommentRepository;
 
 import com.example.demo.dto.post.PostDetailCommentResponse;
 import com.example.demo.dto.post.PostDetailResponse;
-import com.example.demo.repository.CommentRepository;
+import com.example.demo.dto.comment.DeleteCommentResponse;
 
 @Service
 public class PostService {
@@ -288,5 +288,37 @@ public class PostService {
         if (request == null || isBlank(request.getContent())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
         }
+    }
+
+    public DeleteCommentResponse deleteComment(
+            Long userId,
+            Long postId,
+            Long commentId
+    ) {
+        validateSignedInUser(userId);
+
+        Comment comment = commentRepository.findByCommentIdAndPostId(commentId, postId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND,
+                        "댓글을 찾을 수 없습니다."
+                ));
+
+        if (!comment.getAuthorId().equals(userId)) {
+            throw new ApiException(
+                    HttpStatus.FORBIDDEN,
+                    "댓글 삭제 권한이 없습니다."
+            );
+        }
+
+        Post post = postRepository.findByPostId(postId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "서버 내부 오류가 발생하였습니다."
+                ));
+
+        commentRepository.deleteByCommentId(commentId);
+        post.decreaseCommentCount();
+
+        return new DeleteCommentResponse(commentId);
     }
 }

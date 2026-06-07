@@ -29,4 +29,8 @@ public class CommentRepository {
         return Optional.ofNullable(comments.get(commentId))
                 .filter(comment -> comment.getPostId().equals(postId));
     }
+
+    public void deleteByCommentId(Long commentId) {
+        comments.remove(commentId);
+    }
 }
