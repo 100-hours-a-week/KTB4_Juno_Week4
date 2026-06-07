@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.ApiResponse;
 import com.example.demo.dto.comment.*;
+import com.example.demo.dto.like.PostLikeResponse;
 import com.example.demo.dto.post.CreatePostRequest;
 import com.example.demo.dto.post.CreatePostResponse;
 import com.example.demo.dto.post.PostDetailResponse;
@@ -129,8 +130,15 @@ public class PostController {
     }
 
     @PostMapping("/{post_id}/likes")
-    public String createLike(){
-        return "좋아요 수 추가 API";
+    public ResponseEntity<ApiResponse<PostLikeResponse>> createLike(
+            @RequestHeader(value = "user_id", required = false) Long userId,
+            @PathVariable("post_id") Long postId
+    ) {
+        PostLikeResponse response = postService.createLike(userId, postId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("좋아요가 추가되었습니다.", response));
     }
 
     @DeleteMapping("/{post_id}/likes")

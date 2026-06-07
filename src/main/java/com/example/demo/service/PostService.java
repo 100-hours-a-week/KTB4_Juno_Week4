@@ -2,12 +2,11 @@ package com.example.demo.service;
 
 import com.example.demo.domain.Post;
 import com.example.demo.domain.User;
+import com.example.demo.dto.like.PostLikeResponse;
 import com.example.demo.dto.post.CreatePostRequest;
 import com.example.demo.dto.post.CreatePostResponse;
 import com.example.demo.exception.ApiException;
-import com.example.demo.repository.LoginSessionRepository;
-import com.example.demo.repository.PostRepository;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.*;
 import com.example.demo.domain.Comment;
 import com.example.demo.dto.comment.UpdateCommentRequest;
 import com.example.demo.dto.comment.UpdateCommentResponse;
@@ -25,7 +24,6 @@ import java.util.List;
 import com.example.demo.domain.Comment;
 import com.example.demo.dto.comment.CreateCommentRequest;
 import com.example.demo.dto.comment.CreateCommentResponse;
-import com.example.demo.repository.CommentRepository;
 
 import com.example.demo.dto.post.PostDetailCommentResponse;
 import com.example.demo.dto.post.PostDetailResponse;
@@ -38,17 +36,20 @@ public class PostService {
     private final UserRepository userRepository;
     private final LoginSessionRepository loginSessionRepository;
     private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
 
     public PostService(
             PostRepository postRepository,
             UserRepository userRepository,
             LoginSessionRepository loginSessionRepository,
-            CommentRepository commentRepository
+            CommentRepository commentRepository,
+            LikeRepository likeRepository
     ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.loginSessionRepository = loginSessionRepository;
         this.commentRepository = commentRepository;
+        this.likeRepository = likeRepository;
     }
     public CreatePostResponse createPost(Long userId, CreatePostRequest request) {
         validateSignedInUser(userId);
@@ -320,5 +321,34 @@ public class PostService {
         post.decreaseCommentCount();
 
         return new DeleteCommentResponse(commentId);
+    }
+
+    public PostLikeResponse createLike(Long userId, Long postId) {
+        validateSignedInUser(userId);
+
+        Post post = postRepository.findByPostId(postId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND,
+                        "게시글을 찾을 수 없습니다."
+                ));
+
+        userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.UNAUTHORIZED,
+                        "로그인이 필요합니다."
+                ));
+
+        boolean alreadyLiked = likeRepository.existsByPostIdAndUserId(postId, userId);
+
+        if (!alreadyLiked) {
+            likeRepository.save(postId, userId);
+            post.increaseLikeCount();
+        }
+
+        return new PostLikeResponse(
+                post.getPostId(),
+                post.getLikeCount(),
+                true
+        );
     }
 }

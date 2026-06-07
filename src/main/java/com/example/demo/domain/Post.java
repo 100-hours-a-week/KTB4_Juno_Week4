@@ -81,4 +81,8 @@ public class Post {
             this.commentCount--;
         }
     }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
 }
