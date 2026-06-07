@@ -37,4 +37,8 @@ public class Comment {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
+    public void update(String content) {
+        this.content = content;
+    }
 }

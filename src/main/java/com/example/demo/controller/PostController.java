@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ApiResponse;
+import com.example.demo.dto.comment.UpdateCommentRequest;
+import com.example.demo.dto.comment.UpdateCommentResponse;
 import com.example.demo.dto.post.CreatePostRequest;
 import com.example.demo.dto.post.CreatePostResponse;
 import com.example.demo.dto.post.PostDetailResponse;
@@ -95,8 +97,21 @@ public class PostController {
     }
 
     @PatchMapping("/{post_id}/comments/{comment_id}")
-    public String updateComment(){
-        return "댓글 수정 API";
+    public ResponseEntity<ApiResponse<UpdateCommentResponse>> updateComment(
+            @RequestHeader(value = "user_id", required = false) Long userId,
+            @PathVariable("post_id") Long postId,
+            @PathVariable("comment_id") Long commentId,
+            @RequestBody UpdateCommentRequest request
+    ) {
+        UpdateCommentResponse response = postService.updateComment(
+                userId,
+                postId,
+                commentId,
+                request
+        );
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("댓글 수정에 성공하였습니다.", response));
     }
 
     @DeleteMapping("/{post_id}/comments/{comment_id}")

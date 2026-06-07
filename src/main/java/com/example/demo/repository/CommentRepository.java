@@ -3,10 +3,7 @@ package com.example.demo.repository;
 import com.example.demo.domain.Comment;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class CommentRepository {
@@ -26,5 +23,10 @@ public class CommentRepository {
                 .stream()
                 .filter(comment -> comment.getPostId().equals(postId))
                 .toList();
+    }
+
+    public Optional<Comment> findByCommentIdAndPostId(Long commentId, Long postId) {
+        return Optional.ofNullable(comments.get(commentId))
+                .filter(comment -> comment.getPostId().equals(postId));
     }
 }

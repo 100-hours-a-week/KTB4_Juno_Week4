@@ -8,6 +8,9 @@ import com.example.demo.exception.ApiException;
 import com.example.demo.repository.LoginSessionRepository;
 import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.domain.Comment;
+import com.example.demo.dto.comment.UpdateCommentRequest;
+import com.example.demo.dto.comment.UpdateCommentResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -249,6 +252,39 @@ public class PostService {
     }
 
     private void validateCreateCommentRequest(CreateCommentRequest request) {
+        if (request == null || isBlank(request.getContent())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
+        }
+    }
+
+    public UpdateCommentResponse updateComment(
+            Long userId,
+            Long postId,
+            Long commentId,
+            UpdateCommentRequest request
+    ) {
+        validateSignedInUser(userId);
+        validateUpdateCommentRequest(request);
+
+        Comment comment = commentRepository.findByCommentIdAndPostId(commentId, postId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND,
+                        "댓글을 찾을 수 없습니다."
+                ));
+
+        if (!comment.getAuthorId().equals(userId)) {
+            throw new ApiException(
+                    HttpStatus.FORBIDDEN,
+                    "댓글 수정 권한이 없습니다."
+            );
+        }
+
+        comment.update(request.getContent());
+
+        return new UpdateCommentResponse(comment.getCommentId());
+    }
+
+    private void validateUpdateCommentRequest(UpdateCommentRequest request) {
         if (request == null || isBlank(request.getContent())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
         }
