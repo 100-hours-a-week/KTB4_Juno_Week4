@@ -20,6 +20,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.example.demo.domain.Comment;
+import com.example.demo.dto.comment.CreateCommentRequest;
+import com.example.demo.dto.comment.CreateCommentResponse;
+import com.example.demo.repository.CommentRepository;
+
 import com.example.demo.dto.post.PostDetailCommentResponse;
 import com.example.demo.dto.post.PostDetailResponse;
 import com.example.demo.repository.CommentRepository;
@@ -211,5 +215,42 @@ public class PostService {
         }
 
         postRepository.deleteByPostId(postId);
+    }
+
+    public CreateCommentResponse createComment(
+            Long userId,
+            Long postId,
+            CreateCommentRequest request
+    ) {
+        validateSignedInUser(userId);
+        validateCreateCommentRequest(request);
+
+        Post post = postRepository.findByPostId(postId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.NOT_FOUND,
+                        "게시글을 찾을 수 없습니다."
+                ));
+
+        userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.UNAUTHORIZED,
+                        "로그인이 필요합니다."
+                ));
+
+        Comment comment = commentRepository.save(
+                postId,
+                userId,
+                request.getContent()
+        );
+
+        post.increaseCommentCount();
+
+        return new CreateCommentResponse(comment.getCommentId());
+    }
+
+    private void validateCreateCommentRequest(CreateCommentRequest request) {
+        if (request == null || isBlank(request.getContent())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
+        }
     }
 }

@@ -71,4 +71,8 @@ public class Post {
         this.content = content;
         this.image = image;
     }
+
+    public void increaseCommentCount() {
+        this.commentCount++;
+    }
 }

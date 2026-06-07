@@ -8,6 +8,8 @@ import com.example.demo.dto.post.PostListResponse;
 import com.example.demo.dto.post.UpdatePostRequest;
 import com.example.demo.dto.post.UpdatePostResponse;
 import com.example.demo.service.PostService;
+import com.example.demo.dto.comment.CreateCommentRequest;
+import com.example.demo.dto.comment.CreateCommentResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -80,8 +82,16 @@ public class PostController {
     }
 
     @PostMapping("/{post_id}/comments")
-    public String createComment(){
-        return "댓글 작성 API";
+    public ResponseEntity<ApiResponse<CreateCommentResponse>> createComment(
+            @RequestHeader(value = "user_id", required = false) Long userId,
+            @PathVariable("post_id") Long postId,
+            @RequestBody CreateCommentRequest request
+    ) {
+        CreateCommentResponse response = postService.createComment(userId, postId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("댓글 작성에 성공하였습니다.", response));
     }
 
     @PatchMapping("/{post_id}/comments/{comment_id}")
