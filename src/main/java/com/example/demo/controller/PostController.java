@@ -3,12 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.ApiResponse;
 import com.example.demo.dto.comment.*;
 import com.example.demo.dto.like.PostLikeResponse;
-import com.example.demo.dto.post.CreatePostRequest;
-import com.example.demo.dto.post.CreatePostResponse;
-import com.example.demo.dto.post.PostDetailResponse;
-import com.example.demo.dto.post.PostListResponse;
-import com.example.demo.dto.post.UpdatePostRequest;
-import com.example.demo.dto.post.UpdatePostResponse;
+import com.example.demo.dto.post.*;
 import com.example.demo.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,15 +66,15 @@ public class PostController {
     }
 
     @DeleteMapping("/{post_id}")
-    public ResponseEntity<ApiResponse<Void>> deletePost(
+    public ResponseEntity<ApiResponse<DeletePostResponse>> deletePost(
             @RequestHeader(value = "user_id", required = false) Long userId,
             @PathVariable("post_id") Long postId
     ) {
-        postService.deletePost(userId, postId);
+        DeletePostResponse response = postService.deletePost(userId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("게시글 삭제에 성공하였습니다.", null));
+                .body(ApiResponse.success("게시글 삭제에 성공하였습니다.", response));
     }
 
     @PostMapping("/{post_id}/comments")

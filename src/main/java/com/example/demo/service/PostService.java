@@ -3,8 +3,7 @@ package com.example.demo.service;
 import com.example.demo.domain.Post;
 import com.example.demo.domain.User;
 import com.example.demo.dto.like.PostLikeResponse;
-import com.example.demo.dto.post.CreatePostRequest;
-import com.example.demo.dto.post.CreatePostResponse;
+import com.example.demo.dto.post.*;
 import com.example.demo.exception.ApiException;
 import com.example.demo.repository.*;
 import com.example.demo.domain.Comment;
@@ -13,11 +12,6 @@ import com.example.demo.dto.comment.UpdateCommentResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.dto.post.PostListItemResponse;
-import com.example.demo.dto.post.PostListResponse;
-import com.example.demo.dto.post.UpdatePostRequest;
-import com.example.demo.dto.post.UpdatePostResponse;
-
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -25,8 +19,6 @@ import java.util.List;
 import com.example.demo.dto.comment.CreateCommentRequest;
 import com.example.demo.dto.comment.CreateCommentResponse;
 
-import com.example.demo.dto.post.PostDetailCommentResponse;
-import com.example.demo.dto.post.PostDetailResponse;
 import com.example.demo.dto.comment.DeleteCommentResponse;
 
 @Service
@@ -209,7 +201,7 @@ public class PostService {
         }
     }
 
-    public void deletePost(Long userId, Long postId) {
+    public DeletePostResponse deletePost(Long userId, Long postId) {
         validateSignedInUser(userId);
 
         Post post = postRepository.findByPostId(postId)
@@ -229,6 +221,8 @@ public class PostService {
         likeRepository.deleteAllByPostId(postId);
         postViewRepository.deleteAllByPostId(postId);
         postRepository.deleteByPostId(postId);
+
+        return new DeletePostResponse(postId);
     }
 
     public CreateCommentResponse createComment(
