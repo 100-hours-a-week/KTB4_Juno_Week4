@@ -95,11 +95,7 @@ public class PostService {
         List<PostListItemResponse> posts = postRepository.findAll()
                 .stream()
                 .map(post -> {
-                    User author = userRepository.findByUserId(post.getAuthorId())
-                            .orElseThrow(() -> new ApiException(
-                                    HttpStatus.INTERNAL_SERVER_ERROR,
-                                    "서버 내부 오류가 발생하였습니다."
-                            ));
+                    User author = findUserOrNull(post.getAuthorId());
 
                     return new PostListItemResponse(
                             post.getPostId(),
@@ -108,8 +104,8 @@ public class PostService {
                             post.getCommentCount(),
                             post.getViewCount(),
                             post.getCreatedAt().format(formatter),
-                            author.getNickname(),
-                            author.getProfileImage()
+                            getDisplayNickname(author),
+                            getDisplayProfileImage(author)
                     );
                 })
                 .toList();
@@ -128,27 +124,19 @@ public class PostService {
 
         post.increaseViewCount();
 
-        User author = userRepository.findByUserId(post.getAuthorId())
-                .orElseThrow(() -> new ApiException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "서버 내부 오류가 발생하였습니다."
-                ));
+        User author = findUserOrNull(post.getAuthorId());
 
         List<PostDetailCommentResponse> comments = commentRepository.findAllByPostId(postId)
                 .stream()
                 .map(comment -> {
-                    User commentAuthor = userRepository.findByUserId(comment.getAuthorId())
-                            .orElseThrow(() -> new ApiException(
-                                    HttpStatus.INTERNAL_SERVER_ERROR,
-                                    "서버 내부 오류가 발생하였습니다."
-                            ));
+                    User commentAuthor = findUserOrNull(comment.getAuthorId());
 
                     return new PostDetailCommentResponse(
                             comment.getCommentId(),
                             comment.getContent(),
                             comment.getCreatedAt().format(formatter),
-                            commentAuthor.getNickname(),
-                            commentAuthor.getProfileImage()
+                            getDisplayNickname(commentAuthor),
+                            getDisplayProfileImage(commentAuthor)
                     );
                 })
                 .toList();
@@ -162,8 +150,8 @@ public class PostService {
                 post.getCommentCount(),
                 post.getViewCount(),
                 post.getCreatedAt().format(formatter),
-                author.getNickname(),
-                author.getProfileImage(),
+                getDisplayNickname(author),
+                getDisplayProfileImage(author),
                 comments
         );
     }
@@ -379,5 +367,25 @@ public class PostService {
                 post.getLikeCount(),
                 false
         );
+    }
+
+    private User findUserOrNull(Long userId) {
+        return userRepository.findByUserId(userId).orElse(null);
+    }
+
+    private String getDisplayNickname(User user) {
+        if (user == null) {
+            return "탈퇴한 사용자";
+        }
+
+        return user.getNickname();
+    }
+
+    private String getDisplayProfileImage(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        return user.getProfileImage();
     }
 }
