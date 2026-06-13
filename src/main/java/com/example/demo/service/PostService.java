@@ -220,6 +220,8 @@ public class PostService {
             );
         }
 
+        commentRepository.deleteAllByPostId(postId);
+        likeRepository.deleteAllByPostId(postId);
         postRepository.deleteByPostId(postId);
     }
 

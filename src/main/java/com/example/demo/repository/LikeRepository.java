@@ -25,4 +25,8 @@ public class LikeRepository {
     private String createKey(Long postId, Long userId) {
         return postId + ":" + userId;
     }
+
+    public void deleteAllByPostId(Long postId) {
+        likes.removeIf(like -> like.startsWith(postId + ":"));
+    }
 }

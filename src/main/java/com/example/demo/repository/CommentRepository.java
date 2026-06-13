@@ -33,4 +33,8 @@ public class CommentRepository {
     public void deleteByCommentId(Long commentId) {
         comments.remove(commentId);
     }
+
+    public void deleteAllByPostId(Long postId) {
+        comments.values().removeIf(comment -> comment.getPostId().equals(postId));
+    }
 }
