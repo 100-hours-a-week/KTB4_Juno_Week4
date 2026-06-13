@@ -67,9 +67,17 @@ public class Post {
     }
 
     public void update(String title, String content, String image) {
-        this.title = title;
-        this.content = content;
-        this.image = image;
+        if (title != null) {
+            this.title = title;
+        }
+
+        if (content != null) {
+            this.content = content;
+        }
+
+        if (image != null) {
+            this.image = image;
+        }
     }
 
     public void increaseCommentCount() {

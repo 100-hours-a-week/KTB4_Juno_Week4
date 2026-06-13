@@ -183,10 +183,24 @@ public class PostService {
     }
 
     private void validateUpdatePostRequest(UpdatePostRequest request) {
-        if (request == null
-                || isBlank(request.getTitle())
-                || isBlank(request.getContent())) {
+        if (request == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
+        }
+
+        boolean hasTitle = request.getTitle() != null;
+        boolean hasContent = request.getContent() != null;
+        boolean hasImage = request.getImage() != null;
+
+        if (!hasTitle && !hasContent && !hasImage) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "수정할 내용을 입력해주세요.");
+        }
+
+        if (hasTitle && isBlank(request.getTitle())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "제목을 올바르게 입력해주세요.");
+        }
+
+        if (hasContent && isBlank(request.getContent())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "내용을 올바르게 입력해주세요.");
         }
     }
 
