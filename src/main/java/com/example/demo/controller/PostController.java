@@ -47,9 +47,10 @@ public class PostController {
 
     @GetMapping("/{post_id}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPost(
+            @RequestHeader(value = "user_id", required = false) Long userId,
             @PathVariable("post_id") Long postId
     ) {
-        PostDetailResponse response = postService.getPost(postId);
+        PostDetailResponse response = postService.getPost(userId, postId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

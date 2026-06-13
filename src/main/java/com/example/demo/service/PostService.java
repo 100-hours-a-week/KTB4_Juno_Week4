@@ -18,10 +18,10 @@ import com.example.demo.dto.post.PostListResponse;
 import com.example.demo.dto.post.UpdatePostRequest;
 import com.example.demo.dto.post.UpdatePostResponse;
 
+import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import com.example.demo.domain.Comment;
 import com.example.demo.dto.comment.CreateCommentRequest;
 import com.example.demo.dto.comment.CreateCommentResponse;
 
@@ -37,20 +37,25 @@ public class PostService {
     private final LoginSessionRepository loginSessionRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
+    private final PostViewRepository postViewRepository;
+
 
     public PostService(
             PostRepository postRepository,
             UserRepository userRepository,
             LoginSessionRepository loginSessionRepository,
             CommentRepository commentRepository,
-            LikeRepository likeRepository
+            LikeRepository likeRepository,
+            PostViewRepository postViewRepository
     ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.loginSessionRepository = loginSessionRepository;
         this.commentRepository = commentRepository;
         this.likeRepository = likeRepository;
+        this.postViewRepository = postViewRepository;
     }
+
     public CreatePostResponse createPost(Long userId, CreatePostRequest request) {
         validateSignedInUser(userId);
         validateCreatePostRequest(request);
@@ -113,7 +118,7 @@ public class PostService {
         return new PostListResponse(posts);
     }
 
-    public PostDetailResponse getPost(Long postId) {
+    public PostDetailResponse getPost(Long userId, Long postId) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         Post post = postRepository.findByPostId(postId)
@@ -122,7 +127,7 @@ public class PostService {
                         "게시글을 찾을 수 없습니다."
                 ));
 
-        post.increaseViewCount();
+        increaseViewCountIfNeeded(userId, post);
 
         User author = findUserOrNull(post.getAuthorId());
 
@@ -222,6 +227,7 @@ public class PostService {
 
         commentRepository.deleteAllByPostId(postId);
         likeRepository.deleteAllByPostId(postId);
+        postViewRepository.deleteAllByPostId(postId);
         postRepository.deleteByPostId(postId);
     }
 
@@ -403,5 +409,22 @@ public class PostService {
         }
 
         return user.getProfileImage();
+    }
+
+    private void increaseViewCountIfNeeded(Long userId, Post post) {
+        if (userId == null || !loginSessionRepository.isSignedIn(userId)) {
+            post.increaseViewCount();
+            return;
+        }
+
+        boolean canIncrease = postViewRepository.canIncreaseViewCount(
+                post.getPostId(),
+                userId,
+                Duration.ofHours(1)
+        );
+
+        if (canIncrease) {
+            post.increaseViewCount();
+        }
     }
 }
