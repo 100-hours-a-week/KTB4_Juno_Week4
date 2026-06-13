@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 // 전체 컨트롤러에서 발생하는 예외를 한 곳에서 처리하겠다는 뜻
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 // Controller에서 예외가 발생하면 이 클래스에서 처리하겠다는 뜻
 @RestControllerAdvice
@@ -42,6 +43,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e){
         return ResponseEntity.internalServerError().body(ApiResponse.error("서버 내부 오류가 발생하였습니다."));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException e
+    ) {
+        String message = e.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .findFirst()
+                .map(error -> error.getDefaultMessage())
+                .orElse("잘못된 요청입니다.");
+
+        return ResponseEntity
+                .badRequest()
+                .body(ApiResponse.error(message));
     }
 }
 

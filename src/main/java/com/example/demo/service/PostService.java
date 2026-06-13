@@ -231,7 +231,6 @@ public class PostService {
             CreateCommentRequest request
     ) {
         validateSignedInUser(userId);
-        validateCreateCommentRequest(request);
 
         Post post = postRepository.findByPostId(postId)
                 .orElseThrow(() -> new ApiException(
@@ -256,11 +255,6 @@ public class PostService {
         return new CreateCommentResponse(comment.getCommentId());
     }
 
-    private void validateCreateCommentRequest(CreateCommentRequest request) {
-        if (request == null || isBlank(request.getContent())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
-        }
-    }
 
     public UpdateCommentResponse updateComment(
             Long userId,

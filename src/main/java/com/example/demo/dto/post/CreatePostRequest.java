@@ -1,9 +1,15 @@
 package com.example.demo.dto.post;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class CreatePostRequest {
 
+    @NotBlank(message = "제목을 입력해주세요.")
     private String title;
+
+    @NotBlank(message = "내용을 입력해주세요.")
     private String content;
+
     private String image;
 
     public CreatePostRequest() {

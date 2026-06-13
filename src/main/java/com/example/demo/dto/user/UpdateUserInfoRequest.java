@@ -1,8 +1,11 @@
 package com.example.demo.dto.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
 
 public class UpdateUserInfoRequest {
+
+    @NotBlank(message = "닉네임을 입력해주세요.")
     private String nickname;
 
     @JsonProperty("profile_image")

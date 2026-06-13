@@ -8,6 +8,7 @@ import com.example.demo.service.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/posts")
@@ -22,7 +23,7 @@ public class PostController {
     @PostMapping
     public ResponseEntity<ApiResponse<CreatePostResponse>> createPost(
             @RequestHeader(value = "user_id", required = false) Long userId,
-            @RequestBody CreatePostRequest request
+            @Valid @RequestBody CreatePostRequest request
     ) {
         CreatePostResponse response = postService.createPost(userId, request);
 
@@ -81,7 +82,7 @@ public class PostController {
     public ResponseEntity<ApiResponse<CreateCommentResponse>> createComment(
             @RequestHeader(value = "user_id", required = false) Long userId,
             @PathVariable("post_id") Long postId,
-            @RequestBody CreateCommentRequest request
+            @Valid @RequestBody CreateCommentRequest request
     ) {
         CreateCommentResponse response = postService.createComment(userId, postId, request);
 
@@ -95,14 +96,10 @@ public class PostController {
             @RequestHeader(value = "user_id", required = false) Long userId,
             @PathVariable("post_id") Long postId,
             @PathVariable("comment_id") Long commentId,
-            @RequestBody UpdateCommentRequest request
+            @Valid @RequestBody UpdateCommentRequest request
     ) {
-        UpdateCommentResponse response = postService.updateComment(
-                userId,
-                postId,
-                commentId,
-                request
-        );
+        UpdateCommentResponse response = postService.updateComment(userId, postId, commentId, request);
+
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("댓글 수정에 성공하였습니다.", response));

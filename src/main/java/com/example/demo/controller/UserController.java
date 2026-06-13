@@ -6,6 +6,7 @@ import com.example.demo.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/users")
@@ -18,42 +19,55 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<SignupResponse>> signup(@RequestBody SignupRequest request){
+    public ResponseEntity<ApiResponse<SignupResponse>> signup(
+            @Valid @RequestBody SignupRequest request
+    ) {
         SignupResponse response = userService.signup(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("회원가입에 성공하였습니다.", response));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("회원가입에 성공하였습니다.", response));
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<ApiResponse<SigninResponse>> signin(@RequestBody SigninRequest request){
+    public ResponseEntity<ApiResponse<SigninResponse>> signin(
+            @Valid @RequestBody SigninRequest request
+    ) {
         SigninResponse response = userService.signin(request);
 
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("로그인에 성공하였습니다.", response));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("로그인에 성공하였습니다.", response));
     }
 
     @PatchMapping("/me")
-    // 로그인한 사용자만 회원정보를 수정할 수 있기 때문에 header에 user_id 담아서 구분
-    public ResponseEntity<ApiResponse<UpdateUserInfoResponse>> updateUserInfo(@RequestHeader(value = "user_id", required = false) Long userId, @RequestBody UpdateUserInfoRequest request)
-    {
+    public ResponseEntity<ApiResponse<UpdateUserInfoResponse>> updateUserInfo(
+            @RequestHeader(value = "user_id", required = false) Long userId,
+            @Valid @RequestBody UpdateUserInfoRequest request
+    ) {
         UpdateUserInfoResponse response = userService.updateUserInfo(userId, request);
 
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("회원정보 수정에 성공하였습니다.", response));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("회원정보 수정에 성공하였습니다.", response));
     }
 
     @PutMapping("/me/password")
     public ResponseEntity<ApiResponse<Void>> updatePassword(
             @RequestHeader(value = "user_id", required = false) Long userId,
-            @RequestBody UpdatePasswordRequest request
-    ){
+            @Valid @RequestBody UpdatePasswordRequest request
+    ) {
         userService.updatePassword(userId, request);
 
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("비밀번호 수정에 성공하였습니다.", null));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("비밀번호 수정에 성공하였습니다.", null));
     }
 
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteUser(
             @RequestHeader(value = "user_id", required = false) Long userId,
-            @RequestBody DeleteUserRequest request
+            @Valid @RequestBody DeleteUserRequest request
     ) {
         userService.deleteUser(userId, request);
 
