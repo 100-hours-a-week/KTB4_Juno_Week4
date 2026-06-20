@@ -50,6 +50,10 @@ public class UserService {
 
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(()-> new ApiException(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."));
 
+        if (user.isDeleted()) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+
         if(!user.getPassword().equals(request.getPassword())){
             throw new ApiException(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다.");
         }
@@ -104,18 +108,20 @@ public class UserService {
     }
 
 
-    //회원탈퇴 메서드 추가
-    public void deleteUser(Long userId, DeleteUserRequest request){
+    // 회원탈퇴 메서드
+    public void deleteUser(Long userId, DeleteUserRequest request) {
         validateSignedInUser(userId);
 
-        User user = userRepository.findByUserId(userId).orElseThrow(()->new ApiException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."));
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."));
 
         if (!user.isPasswordMatched(request.getPassword())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "현재 비밀번호가 일치하지 않습니다.");
         }
 
-        userRepository.deleteByUserId(userId);
-        //회원이 탈퇴했으면 로그인 상태도 남아있으면 안되기 때문에 signedInUserIds에서도 해당 userId를 제거
+        user.withdraw();
+
+        // 회원이 탈퇴했으면 로그인 상태도 남아있으면 안 되기 때문에 signedInUserIds에서도 해당 userId를 제거
         loginSessionRepository.signout(userId);
     }
 
