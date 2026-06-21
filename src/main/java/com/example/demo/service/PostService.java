@@ -4,6 +4,8 @@ import com.example.demo.domain.Post;
 import com.example.demo.domain.User;
 import com.example.demo.domain.PostLike;
 import com.example.demo.domain.PostLikeId;
+import com.example.demo.domain.PostView;
+import com.example.demo.domain.PostViewId;
 import com.example.demo.dto.like.PostLikeResponse;
 import com.example.demo.dto.post.*;
 import com.example.demo.exception.ApiException;
@@ -15,7 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -223,7 +225,7 @@ public class PostService {
 
         commentRepository.deleteAllByPost(post);
         likeRepository.deleteAllByPost(post);
-        postViewRepository.deleteAllByPostId(postId);
+        postViewRepository.deleteAllByPost(post);
         postRepository.deleteById(postId);
 
         return new DeletePostResponse(postId);
@@ -421,14 +423,28 @@ public class PostService {
             return;
         }
 
-        boolean canIncrease = postViewRepository.canIncreaseViewCount(
-                post.getPostId(),
-                userId,
-                Duration.ofHours(1)
-        );
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.UNAUTHORIZED,
+                        "로그인이 필요합니다."
+                ));
 
-        if (canIncrease) {
+        PostViewId postViewId = new PostViewId(post.getPostId(), user.getUserId());
+
+        PostView postView = postViewRepository.findById(postViewId)
+                .orElse(null);
+
+        if (postView == null) {
+            postViewRepository.save(new PostView(post, user));
             post.increaseViewCount();
+            return;
+        }
+
+        LocalDateTime standardTime = LocalDateTime.now().minusHours(24);
+
+        if (postView.canIncreaseViewCountAfter(standardTime)) {
+            post.increaseViewCount();
+            postView.updateLastViewedAt();
         }
     }
 }
