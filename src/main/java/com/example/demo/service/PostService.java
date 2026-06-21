@@ -95,7 +95,7 @@ public class PostService {
     public PostListResponse getPostList() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        List<PostListItemResponse> posts = postRepository.findAllByDeletedAtIsNull()
+        List<PostListItemResponse> posts = postRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc()
                 .stream()
                 .map(post -> {
                     User author = post.getAuthor();
