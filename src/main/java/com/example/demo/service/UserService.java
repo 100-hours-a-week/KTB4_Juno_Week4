@@ -80,7 +80,7 @@ public class UserService {
     public UpdateUserInfoResponse updateUserInfo(Long userId, UpdateUserInfoRequest request){
         validateSignedInUser(userId);
 
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.UNAUTHORIZED,
                         "로그인이 필요합니다."
@@ -106,7 +106,7 @@ public class UserService {
     public void updatePassword(Long userId, UpdatePasswordRequest request){
         validateSignedInUser(userId);
 
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.UNAUTHORIZED,
                         "로그인이 필요합니다."
@@ -122,7 +122,7 @@ public class UserService {
     public void deleteUser(Long userId, DeleteUserRequest request) {
         validateSignedInUser(userId);
 
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.UNAUTHORIZED,
                         "로그인이 필요합니다."
