@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import com.example.demo.domain.Post;
 import com.example.demo.domain.User;
+import com.example.demo.domain.PostLike;
+import com.example.demo.domain.PostLikeId;
 import com.example.demo.dto.like.PostLikeResponse;
 import com.example.demo.dto.post.*;
 import com.example.demo.exception.ApiException;
@@ -220,7 +222,7 @@ public class PostService {
         }
 
         commentRepository.deleteAllByPost(post);
-        likeRepository.deleteAllByPostId(postId);
+        likeRepository.deleteAllByPost(post);
         postViewRepository.deleteAllByPostId(postId);
         postRepository.deleteById(postId);
 
@@ -343,16 +345,18 @@ public class PostService {
                         "게시글을 찾을 수 없습니다."
                 ));
 
-        userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.UNAUTHORIZED,
                         "로그인이 필요합니다."
                 ));
 
-        boolean alreadyLiked = likeRepository.existsByPostIdAndUserId(postId, userId);
+        PostLikeId likeId = new PostLikeId(postId, userId);
+
+        boolean alreadyLiked = likeRepository.existsById(likeId);
 
         if (!alreadyLiked) {
-            likeRepository.save(postId, userId);
+            likeRepository.save(new PostLike(post, user));
             post.increaseLikeCount();
         }
 
@@ -378,10 +382,12 @@ public class PostService {
                         "로그인이 필요합니다."
                 ));
 
-        boolean alreadyLiked = likeRepository.existsByPostIdAndUserId(postId, userId);
+        PostLikeId likeId = new PostLikeId(postId, userId);
+
+        boolean alreadyLiked = likeRepository.existsById(likeId);
 
         if (alreadyLiked) {
-            likeRepository.delete(postId, userId);
+            likeRepository.deleteById(likeId);
             post.decreaseLikeCount();
         }
 
