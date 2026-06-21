@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
-// 서버 내부에서 관리할 회원 객체
 @Entity
 @Table(name = "users")
 public class User {
