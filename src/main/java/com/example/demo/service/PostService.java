@@ -11,6 +11,7 @@ import com.example.demo.dto.comment.UpdateCommentRequest;
 import com.example.demo.dto.comment.UpdateCommentResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
@@ -18,10 +19,10 @@ import java.util.List;
 
 import com.example.demo.dto.comment.CreateCommentRequest;
 import com.example.demo.dto.comment.CreateCommentResponse;
-
 import com.example.demo.dto.comment.DeleteCommentResponse;
 
 @Service
+@Transactional
 public class PostService {
 
     private final PostRepository postRepository;
@@ -30,7 +31,6 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
     private final PostViewRepository postViewRepository;
-
 
     public PostService(
             PostRepository postRepository,
@@ -52,17 +52,19 @@ public class PostService {
         validateSignedInUser(userId);
         validateCreatePostRequest(request);
 
-        userRepository.findByUserId(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.UNAUTHORIZED,
                         "로그인이 필요합니다."
                 ));
 
         Post post = postRepository.save(
-                userId,
-                request.getTitle(),
-                request.getContent(),
-                request.getImage()
+                new Post(
+                        user,
+                        request.getTitle(),
+                        request.getContent(),
+                        request.getImage()
+                )
         );
 
         return new CreatePostResponse(post.getPostId());
@@ -92,7 +94,7 @@ public class PostService {
         List<PostListItemResponse> posts = postRepository.findAll()
                 .stream()
                 .map(post -> {
-                    User author = findUserOrNull(post.getAuthorId());
+                    User author = post.getAuthor();
 
                     return new PostListItemResponse(
                             post.getPostId(),
@@ -113,7 +115,7 @@ public class PostService {
     public PostDetailResponse getPost(Long userId, Long postId) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        Post post = postRepository.findByPostId(postId)
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.NOT_FOUND,
                         "게시글을 찾을 수 없습니다."
@@ -121,7 +123,7 @@ public class PostService {
 
         increaseViewCountIfNeeded(userId, post);
 
-        User author = findUserOrNull(post.getAuthorId());
+        User author = post.getAuthor();
 
         List<PostDetailCommentResponse> comments = commentRepository.findAllByPostId(postId)
                 .stream()
@@ -157,13 +159,13 @@ public class PostService {
         validateSignedInUser(userId);
         validateUpdatePostRequest(request);
 
-        Post post = postRepository.findByPostId(postId)
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.NOT_FOUND,
                         "게시글을 찾을 수 없습니다."
                 ));
 
-        if (!post.getAuthorId().equals(userId)) {
+        if (!post.getAuthor().getUserId().equals(userId)) {
             throw new ApiException(
                     HttpStatus.FORBIDDEN,
                     "게시글 수정 권한이 없습니다."
@@ -204,13 +206,13 @@ public class PostService {
     public DeletePostResponse deletePost(Long userId, Long postId) {
         validateSignedInUser(userId);
 
-        Post post = postRepository.findByPostId(postId)
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.NOT_FOUND,
                         "게시글을 찾을 수 없습니다."
                 ));
 
-        if (!post.getAuthorId().equals(userId)) {
+        if (!post.getAuthor().getUserId().equals(userId)) {
             throw new ApiException(
                     HttpStatus.FORBIDDEN,
                     "게시글 삭제 권한이 없습니다."
@@ -220,7 +222,7 @@ public class PostService {
         commentRepository.deleteAllByPostId(postId);
         likeRepository.deleteAllByPostId(postId);
         postViewRepository.deleteAllByPostId(postId);
-        postRepository.deleteByPostId(postId);
+        postRepository.deleteById(postId);
 
         return new DeletePostResponse(postId);
     }
@@ -232,13 +234,13 @@ public class PostService {
     ) {
         validateSignedInUser(userId);
 
-        Post post = postRepository.findByPostId(postId)
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.NOT_FOUND,
                         "게시글을 찾을 수 없습니다."
                 ));
 
-        userRepository.findByUserId(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.UNAUTHORIZED,
                         "로그인이 필요합니다."
@@ -254,7 +256,6 @@ public class PostService {
 
         return new CreateCommentResponse(comment.getCommentId());
     }
-
 
     public UpdateCommentResponse updateComment(
             Long userId,
@@ -309,7 +310,7 @@ public class PostService {
             );
         }
 
-        Post post = postRepository.findByPostId(postId)
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         "서버 내부 오류가 발생하였습니다."
@@ -324,13 +325,13 @@ public class PostService {
     public PostLikeResponse createLike(Long userId, Long postId) {
         validateSignedInUser(userId);
 
-        Post post = postRepository.findByPostId(postId)
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.NOT_FOUND,
                         "게시글을 찾을 수 없습니다."
                 ));
 
-        userRepository.findByUserId(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.UNAUTHORIZED,
                         "로그인이 필요합니다."
@@ -353,13 +354,13 @@ public class PostService {
     public PostLikeResponse deleteLike(Long userId, Long postId) {
         validateSignedInUser(userId);
 
-        Post post = postRepository.findByPostId(postId)
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.NOT_FOUND,
                         "게시글을 찾을 수 없습니다."
                 ));
 
-        userRepository.findByUserId(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.UNAUTHORIZED,
                         "로그인이 필요합니다."
@@ -380,7 +381,7 @@ public class PostService {
     }
 
     private User findUserOrNull(Long userId) {
-        return userRepository.findByUserId(userId).orElse(null);
+        return userRepository.findById(userId).orElse(null);
     }
 
     private String getDisplayNickname(User user) {

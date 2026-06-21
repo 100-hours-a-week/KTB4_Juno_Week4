@@ -1,22 +1,54 @@
 package com.example.demo.domain;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "posts")
 public class Post {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "post_id")
     private Long postId;
-    private Long authorId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User author;
+
+    @Column(nullable = false, length = 100)
     private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+
+    @Column(length = 255)
     private String image;
+
+    @Column(name = "like_count", nullable = false)
     private int likeCount;
+
+    @Column(name = "comment_count", nullable = false)
     private int commentCount;
+
+    @Column(name = "view_count", nullable = false)
     private int viewCount;
+
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    public Post(Long postId, Long authorId, String title, String content, String image) {
-        this.postId = postId;
-        this.authorId = authorId;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    protected Post() {
+    }
+
+    public Post(User author, String title, String content, String image) {
+        this.author = author;
         this.title = title;
         this.content = content;
         this.image = image;
@@ -30,8 +62,8 @@ public class Post {
         return postId;
     }
 
-    public Long getAuthorId() {
-        return authorId;
+    public User getAuthor() {
+        return author;
     }
 
     public String getTitle() {
@@ -62,6 +94,14 @@ public class Post {
         return createdAt;
     }
 
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
     public void increaseViewCount() {
         this.viewCount++;
     }
@@ -78,6 +118,8 @@ public class Post {
         if (image != null) {
             this.image = image;
         }
+
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void increaseCommentCount() {
@@ -98,5 +140,10 @@ public class Post {
         if (this.likeCount > 0) {
             this.likeCount--;
         }
+    }
+
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }
