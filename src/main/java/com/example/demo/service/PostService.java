@@ -95,7 +95,7 @@ public class PostService {
     public PostListResponse getPostList() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        List<PostListItemResponse> posts = postRepository.findAll()
+        List<PostListItemResponse> posts = postRepository.findAllByDeletedAtIsNull()
                 .stream()
                 .map(post -> {
                     User author = post.getAuthor();
@@ -125,11 +125,13 @@ public class PostService {
                         "게시글을 찾을 수 없습니다."
                 ));
 
+        validateNotDeletedPost(post);
+
         increaseViewCountIfNeeded(userId, post);
 
         User author = post.getAuthor();
 
-        List<PostDetailCommentResponse> comments = commentRepository.findAllByPost(post)
+        List<PostDetailCommentResponse> comments = commentRepository.findAllByPostAndDeletedAtIsNull(post)
                 .stream()
                 .map(comment -> {
                     User commentAuthor = comment.getAuthor();
@@ -168,6 +170,8 @@ public class PostService {
                         HttpStatus.NOT_FOUND,
                         "게시글을 찾을 수 없습니다."
                 ));
+
+        validateNotDeletedPost(post);
 
         if (!post.getAuthor().getUserId().equals(userId)) {
             throw new ApiException(
@@ -216,6 +220,8 @@ public class PostService {
                         "게시글을 찾을 수 없습니다."
                 ));
 
+        validateNotDeletedPost(post);
+
         if (!post.getAuthor().getUserId().equals(userId)) {
             throw new ApiException(
                     HttpStatus.FORBIDDEN,
@@ -223,10 +229,13 @@ public class PostService {
             );
         }
 
-        commentRepository.deleteAllByPost(post);
-        likeRepository.deleteAllByPost(post);
-        postViewRepository.deleteAllByPost(post);
-        postRepository.deleteById(postId);
+        List<Comment> comments = commentRepository.findAllByPostAndDeletedAtIsNull(post);
+
+        for (Comment comment : comments) {
+            comment.delete();
+        }
+
+        post.delete();
 
         return new DeletePostResponse(postId);
     }
@@ -243,6 +252,8 @@ public class PostService {
                         HttpStatus.NOT_FOUND,
                         "게시글을 찾을 수 없습니다."
                 ));
+
+        validateNotDeletedPost(post);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
@@ -277,6 +288,9 @@ public class PostService {
                         HttpStatus.NOT_FOUND,
                         "댓글을 찾을 수 없습니다."
                 ));
+
+        validateNotDeletedComment(comment);
+        validateNotDeletedPost(comment.getPost());
 
         if (!comment.getPost().getPostId().equals(postId)) {
             throw new ApiException(
@@ -316,6 +330,9 @@ public class PostService {
                         "댓글을 찾을 수 없습니다."
                 ));
 
+        validateNotDeletedComment(comment);
+        validateNotDeletedPost(comment.getPost());
+
         if (!comment.getPost().getPostId().equals(postId)) {
             throw new ApiException(
                     HttpStatus.NOT_FOUND,
@@ -332,7 +349,7 @@ public class PostService {
 
         Post post = comment.getPost();
 
-        commentRepository.deleteById(commentId);
+        comment.delete();
         post.decreaseCommentCount();
 
         return new DeleteCommentResponse(commentId);
@@ -346,6 +363,8 @@ public class PostService {
                         HttpStatus.NOT_FOUND,
                         "게시글을 찾을 수 없습니다."
                 ));
+
+        validateNotDeletedPost(post);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
@@ -377,6 +396,8 @@ public class PostService {
                         HttpStatus.NOT_FOUND,
                         "게시글을 찾을 수 없습니다."
                 ));
+
+        validateNotDeletedPost(post);
 
         userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
@@ -445,6 +466,24 @@ public class PostService {
         if (postView.canIncreaseViewCountAfter(standardTime)) {
             post.increaseViewCount();
             postView.updateLastViewedAt();
+        }
+    }
+
+    private void validateNotDeletedPost(Post post) {
+        if (post.getDeletedAt() != null) {
+            throw new ApiException(
+                    HttpStatus.NOT_FOUND,
+                    "게시글을 찾을 수 없습니다."
+            );
+        }
+    }
+
+    private void validateNotDeletedComment(Comment comment) {
+        if (comment.getDeletedAt() != null) {
+            throw new ApiException(
+                    HttpStatus.NOT_FOUND,
+                    "댓글을 찾을 수 없습니다."
+            );
         }
     }
 }
