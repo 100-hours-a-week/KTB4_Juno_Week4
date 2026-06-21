@@ -1,20 +1,44 @@
 package com.example.demo.domain;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 // 서버 내부에서 관리할 회원 객체
+@Entity
+@Table(name = "users")
 public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private Long userId;
+
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
+
+    @Column(nullable = false, length = 255)
     private String password;
+
+    @Column(nullable = false, unique = true, length = 30)
     private String nickname;
+
+    @Column(name = "profile_image", length = 255)
     private String profileImage;
+
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    public User(Long userId, String email, String password, String nickname, String profileImage) {
-        this.userId = userId;
+    protected User() {
+    }
+
+    public User(String email, String password, String nickname, String profileImage) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
@@ -68,18 +92,15 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 현재 비밀번호가 맞는지 확인하는 메서드
     public boolean isPasswordMatched(String password) {
         return this.password.equals(password);
     }
 
-    // 새 비밀번호로 변경하는 메서드
     public void updatePassword(String newPassword) {
         this.password = newPassword;
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 회원 탈퇴 처리 메서드
     public void withdraw() {
         this.email = "deleted_" + this.userId + "@deleted.local";
         this.nickname = "deleted_" + this.userId;
