@@ -25,7 +25,7 @@ public class User {
     @Column(name = "profile_image", length = 255)
     private String profileImage;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
@@ -42,7 +42,16 @@ public class User {
         this.password = password;
         this.nickname = nickname;
         this.profileImage = profileImage;
+    }
+
+    @PrePersist
+    private void onCreate() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getUserId() {
@@ -87,8 +96,6 @@ public class User {
         if (profileImage != null) {
             this.profileImage = profileImage;
         }
-
-        this.updatedAt = LocalDateTime.now();
     }
 
     public boolean isPasswordMatched(String password) {
@@ -97,7 +104,6 @@ public class User {
 
     public void updatePassword(String newPassword) {
         this.password = newPassword;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void withdraw() {
@@ -105,6 +111,5 @@ public class User {
         this.nickname = "deleted_" + this.userId;
         this.profileImage = null;
         this.deletedAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 }

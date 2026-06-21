@@ -35,7 +35,7 @@ public class Post {
     @Column(name = "view_count", nullable = false)
     private int viewCount;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
@@ -55,7 +55,16 @@ public class Post {
         this.likeCount = 0;
         this.commentCount = 0;
         this.viewCount = 0;
+    }
+
+    @PrePersist
+    private void onCreate() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getPostId() {
@@ -118,8 +127,6 @@ public class Post {
         if (image != null) {
             this.image = image;
         }
-
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void increaseCommentCount() {
@@ -144,6 +151,5 @@ public class Post {
 
     public void delete() {
         this.deletedAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 }
