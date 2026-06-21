@@ -125,10 +125,10 @@ public class PostService {
 
         User author = post.getAuthor();
 
-        List<PostDetailCommentResponse> comments = commentRepository.findAllByPostId(postId)
+        List<PostDetailCommentResponse> comments = commentRepository.findAllByPost(post)
                 .stream()
                 .map(comment -> {
-                    User commentAuthor = findUserOrNull(comment.getAuthorId());
+                    User commentAuthor = comment.getAuthor();
 
                     return new PostDetailCommentResponse(
                             comment.getCommentId(),
@@ -219,7 +219,7 @@ public class PostService {
             );
         }
 
-        commentRepository.deleteAllByPostId(postId);
+        commentRepository.deleteAllByPost(post);
         likeRepository.deleteAllByPostId(postId);
         postViewRepository.deleteAllByPostId(postId);
         postRepository.deleteById(postId);
@@ -240,16 +240,18 @@ public class PostService {
                         "게시글을 찾을 수 없습니다."
                 ));
 
-        userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.UNAUTHORIZED,
                         "로그인이 필요합니다."
                 ));
 
         Comment comment = commentRepository.save(
-                postId,
-                userId,
-                request.getContent()
+                new Comment(
+                        post,
+                        user,
+                        request.getContent()
+                )
         );
 
         post.increaseCommentCount();
@@ -266,13 +268,20 @@ public class PostService {
         validateSignedInUser(userId);
         validateUpdateCommentRequest(request);
 
-        Comment comment = commentRepository.findByCommentIdAndPostId(commentId, postId)
+        Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.NOT_FOUND,
                         "댓글을 찾을 수 없습니다."
                 ));
 
-        if (!comment.getAuthorId().equals(userId)) {
+        if (!comment.getPost().getPostId().equals(postId)) {
+            throw new ApiException(
+                    HttpStatus.NOT_FOUND,
+                    "댓글을 찾을 수 없습니다."
+            );
+        }
+
+        if (!comment.getAuthor().getUserId().equals(userId)) {
             throw new ApiException(
                     HttpStatus.FORBIDDEN,
                     "댓글 수정 권한이 없습니다."
@@ -297,26 +306,29 @@ public class PostService {
     ) {
         validateSignedInUser(userId);
 
-        Comment comment = commentRepository.findByCommentIdAndPostId(commentId, postId)
+        Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.NOT_FOUND,
                         "댓글을 찾을 수 없습니다."
                 ));
 
-        if (!comment.getAuthorId().equals(userId)) {
+        if (!comment.getPost().getPostId().equals(postId)) {
+            throw new ApiException(
+                    HttpStatus.NOT_FOUND,
+                    "댓글을 찾을 수 없습니다."
+            );
+        }
+
+        if (!comment.getAuthor().getUserId().equals(userId)) {
             throw new ApiException(
                     HttpStatus.FORBIDDEN,
                     "댓글 삭제 권한이 없습니다."
             );
         }
 
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new ApiException(
-                        HttpStatus.INTERNAL_SERVER_ERROR,
-                        "서버 내부 오류가 발생하였습니다."
-                ));
+        Post post = comment.getPost();
 
-        commentRepository.deleteByCommentId(commentId);
+        commentRepository.deleteById(commentId);
         post.decreaseCommentCount();
 
         return new DeleteCommentResponse(commentId);
@@ -380,9 +392,6 @@ public class PostService {
         );
     }
 
-    private User findUserOrNull(Long userId) {
-        return userRepository.findById(userId).orElse(null);
-    }
 
     private String getDisplayNickname(User user) {
         if (user == null) {
