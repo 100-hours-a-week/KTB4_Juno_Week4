@@ -133,10 +133,6 @@ public class UserService {
                         "로그인이 필요합니다."
                 ));
 
-        if (!user.isPasswordMatched(request.getCurrentPassword())) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "현재 비밀번호가 일치하지 않습니다.");
-        }
-
         user.updatePassword(request.getNewPassword());
     }
 

@@ -6,10 +6,6 @@ import jakarta.validation.constraints.Pattern;
 
 public class UpdatePasswordRequest {
 
-    @NotBlank(message = "현재 비밀번호를 입력해주세요.")
-    @JsonProperty("current_password")
-    private String currentPassword;
-
     @NotBlank(message = "새 비밀번호를 입력해주세요.")
     @Pattern(
             regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,}$",
@@ -18,22 +14,14 @@ public class UpdatePasswordRequest {
     @JsonProperty("new_password")
     private String newPassword;
 
-    public UpdatePasswordRequest(){
+    public UpdatePasswordRequest() {
     }
 
-    public String getCurrentPassword(){
-        return currentPassword;
-    }
-
-    public String getNewPassword(){
+    public String getNewPassword() {
         return newPassword;
     }
 
-    public void setCurrentPassword(String currentPassword){
-        this.currentPassword = currentPassword;
-    }
-
-    public void setNewPassword(String newPassword){
+    public void setNewPassword(String newPassword) {
         this.newPassword = newPassword;
     }
 }
