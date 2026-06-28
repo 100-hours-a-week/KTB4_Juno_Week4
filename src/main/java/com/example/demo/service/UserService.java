@@ -103,6 +103,27 @@ public class UserService {
         }
     }
 
+    public UserInfoResponse getMyInfo(Long userId) {
+        validateSignedInUser(userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.UNAUTHORIZED,
+                        "로그인이 필요합니다."
+                ));
+
+        if (user.isDeleted()) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+
+        return new UserInfoResponse(
+                user.getUserId(),
+                user.getEmail(),
+                user.getNickname(),
+                user.getProfileImage()
+        );
+    }
+
     public void updatePassword(Long userId, UpdatePasswordRequest request){
         validateSignedInUser(userId);
 

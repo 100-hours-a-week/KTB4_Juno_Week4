@@ -40,6 +40,17 @@ public class UserController {
                 .body(ApiResponse.success("로그인에 성공하였습니다.", response));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserInfoResponse>> getMyInfo(
+            @RequestHeader(value = "user_id", required = false) Long userId
+    ) {
+        UserInfoResponse response = userService.getMyInfo(userId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("회원정보 조회에 성공하였습니다.", response));
+    }
+
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UpdateUserInfoResponse>> updateUserInfo(
             @RequestHeader(value = "user_id", required = false) Long userId,
