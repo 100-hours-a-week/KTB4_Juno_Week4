@@ -136,7 +136,7 @@ public class UserService {
         user.updatePassword(request.getNewPassword());
     }
 
-    public void deleteUser(Long userId, DeleteUserRequest request) {
+    public void deleteUser(Long userId) {
         validateSignedInUser(userId);
 
         User user = userRepository.findById(userId)
@@ -144,10 +144,6 @@ public class UserService {
                         HttpStatus.UNAUTHORIZED,
                         "로그인이 필요합니다."
                 ));
-
-        if (!user.isPasswordMatched(request.getPassword())) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "현재 비밀번호가 일치하지 않습니다.");
-        }
 
         user.withdraw();
 

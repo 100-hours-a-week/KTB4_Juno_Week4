@@ -77,10 +77,9 @@ public class UserController {
 
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteUser(
-            @RequestHeader(value = "user_id", required = false) Long userId,
-            @Valid @RequestBody DeleteUserRequest request
+            @RequestHeader(value = "user_id", required = false) Long userId
     ) {
-        userService.deleteUser(userId, request);
+        userService.deleteUser(userId);
 
         return ResponseEntity.noContent().build();
     }
