@@ -129,6 +129,8 @@ public class PostService {
 
         increaseViewCountIfNeeded(userId, post);
 
+        boolean liked = isLikedByUser(userId, post);
+
         User author = post.getAuthor();
 
         List<PostDetailCommentResponse> comments = commentRepository.findAllByPostAndDeletedAtIsNull(post)
@@ -154,6 +156,7 @@ public class PostService {
                 post.getLikeCount(),
                 post.getCommentCount(),
                 post.getViewCount(),
+                liked,
                 post.getCreatedAt().format(formatter),
                 getDisplayNickname(author),
                 getDisplayProfileImage(author),
@@ -436,6 +439,21 @@ public class PostService {
         }
 
         return user.getProfileImage();
+    }
+
+
+    private boolean isLikedByUser(Long userId, Post post) {
+        if (userId == null || !loginSessionRepository.isSignedIn(userId)) {
+            return false;
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(
+                        HttpStatus.UNAUTHORIZED,
+                        "로그인이 필요합니다."
+                ));
+
+        return likeRepository.existsByPostAndUser(post, user);
     }
 
     private void increaseViewCountIfNeeded(Long userId, Post post) {

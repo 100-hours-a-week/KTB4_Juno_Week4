@@ -24,6 +24,8 @@ public class PostDetailResponse {
     @JsonProperty("view_count")
     private int viewCount;
 
+    private boolean liked;
+
     @JsonProperty("created_at")
     private String createdAt;
 
@@ -43,6 +45,7 @@ public class PostDetailResponse {
             int likeCount,
             int commentCount,
             int viewCount,
+            boolean liked,
             String createdAt,
             String authorNickname,
             String authorProfileImage,
@@ -55,6 +58,7 @@ public class PostDetailResponse {
         this.likeCount = likeCount;
         this.commentCount = commentCount;
         this.viewCount = viewCount;
+        this.liked = liked;
         this.createdAt = createdAt;
         this.authorNickname = authorNickname;
         this.authorProfileImage = authorProfileImage;
@@ -87,6 +91,10 @@ public class PostDetailResponse {
 
     public int getViewCount() {
         return viewCount;
+    }
+
+    public boolean isLiked() {
+        return liked;
     }
 
     public String getCreatedAt() {
