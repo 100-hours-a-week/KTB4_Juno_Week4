@@ -158,6 +158,7 @@ public class PostService {
                 post.getViewCount(),
                 liked,
                 post.getCreatedAt().format(formatter),
+                author.getUserId(),
                 getDisplayNickname(author),
                 getDisplayProfileImage(author),
                 comments
