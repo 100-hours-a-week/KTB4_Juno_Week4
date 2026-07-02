@@ -129,6 +129,8 @@ public class PostService {
 
         increaseViewCountIfNeeded(userId, post);
 
+        int viewCount = postRepository.findViewCountByPostId(postId);
+
         boolean liked = isLikedByUser(userId, post);
 
         User author = post.getAuthor();
@@ -155,7 +157,7 @@ public class PostService {
                 post.getImage(),
                 post.getLikeCount(),
                 post.getCommentCount(),
-                post.getViewCount(),
+                viewCount,
                 liked,
                 post.getCreatedAt().format(formatter),
                 author.getUserId(),
@@ -273,7 +275,7 @@ public class PostService {
                 )
         );
 
-        post.increaseCommentCount();
+        postRepository.increaseCommentCount(postId);
 
         return new CreateCommentResponse(comment.getCommentId());
     }
@@ -351,10 +353,8 @@ public class PostService {
             );
         }
 
-        Post post = comment.getPost();
-
         comment.delete();
-        post.decreaseCommentCount();
+        postRepository.decreaseCommentCount(postId);
 
         return new DeleteCommentResponse(commentId);
     }
@@ -382,12 +382,14 @@ public class PostService {
 
         if (!alreadyLiked) {
             likeRepository.save(new PostLike(post, user));
-            post.increaseLikeCount();
+            postRepository.increaseLikeCount(postId);
         }
+
+        int likeCount = postRepository.findLikeCountByPostId(postId);
 
         return new PostLikeResponse(
                 post.getPostId(),
-                post.getLikeCount(),
+                likeCount,
                 true
         );
     }
@@ -415,12 +417,14 @@ public class PostService {
 
         if (alreadyLiked) {
             likeRepository.deleteById(likeId);
-            post.decreaseLikeCount();
+            postRepository.decreaseLikeCount(postId);
         }
+
+        int likeCount = postRepository.findLikeCountByPostId(postId);
 
         return new PostLikeResponse(
                 post.getPostId(),
-                post.getLikeCount(),
+                likeCount,
                 false
         );
     }
@@ -459,7 +463,7 @@ public class PostService {
 
     private void increaseViewCountIfNeeded(Long userId, Post post) {
         if (userId == null || !loginSessionRepository.isSignedIn(userId)) {
-            post.increaseViewCount();
+            postRepository.increaseViewCount(post.getPostId());
             return;
         }
 
@@ -476,14 +480,14 @@ public class PostService {
 
         if (postView == null) {
             postViewRepository.save(new PostView(post, user));
-            post.increaseViewCount();
+            postRepository.increaseViewCount(post.getPostId());
             return;
         }
 
         LocalDateTime standardTime = LocalDateTime.now().minusHours(24);
 
         if (postView.canIncreaseViewCountAfter(standardTime)) {
-            post.increaseViewCount();
+            postRepository.increaseViewCount(post.getPostId());
             postView.updateLastViewedAt();
         }
     }
