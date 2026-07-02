@@ -21,7 +21,6 @@ public class UserService {
     }
 
     public SignupResponse signup(SignupRequest request){
-        validateSignupRequest(request);
 
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
             throw new ApiException(HttpStatus.CONFLICT, "중복된 이메일입니다.");
@@ -41,12 +40,6 @@ public class UserService {
         );
 
         return new SignupResponse(user.getUserId());
-    }
-
-    private void validateSignupRequest(SignupRequest request) {
-        if (request == null || isBlank(request.getEmail()) || isBlank(request.getPassword()) || isBlank(request.getNickname())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "비정상적인 접근입니다.");
-        }
     }
 
     public SigninResponse signin(SigninRequest request){
@@ -151,7 +144,4 @@ public class UserService {
         loginSessionRepository.signout(userId);
     }
 
-    private boolean isBlank(String value){
-        return value == null || value.trim().isEmpty();
-    }
 }

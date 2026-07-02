@@ -54,7 +54,6 @@ public class PostService {
 
     public CreatePostResponse createPost(Long userId, CreatePostRequest request) {
         validateSignedInUser(userId);
-        validateCreatePostRequest(request);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(
@@ -78,18 +77,6 @@ public class PostService {
         if (userId == null || !loginSessionRepository.isSignedIn(userId)) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
-    }
-
-    private void validateCreatePostRequest(CreatePostRequest request) {
-        if (request == null
-                || isBlank(request.getTitle())
-                || isBlank(request.getContent())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
-        }
-    }
-
-    private boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
     }
 
     @Transactional(readOnly = true)
@@ -167,10 +154,8 @@ public class PostService {
                 comments
         );
     }
-
     public UpdatePostResponse updatePost(Long userId, Long postId, UpdatePostRequest request) {
         validateSignedInUser(userId);
-        validateUpdatePostRequest(request);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ApiException(
@@ -194,28 +179,6 @@ public class PostService {
         );
 
         return new UpdatePostResponse(post.getPostId());
-    }
-
-    private void validateUpdatePostRequest(UpdatePostRequest request) {
-        if (request == null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
-        }
-
-        boolean hasTitle = request.getTitle() != null;
-        boolean hasContent = request.getContent() != null;
-        boolean hasImage = request.getImage() != null;
-
-        if (!hasTitle && !hasContent && !hasImage) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "수정할 내용을 입력해주세요.");
-        }
-
-        if (hasTitle && isBlank(request.getTitle())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "제목을 올바르게 입력해주세요.");
-        }
-
-        if (hasContent && isBlank(request.getContent())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "내용을 올바르게 입력해주세요.");
-        }
     }
 
     public DeletePostResponse deletePost(Long userId, Long postId) {
@@ -288,7 +251,6 @@ public class PostService {
             UpdateCommentRequest request
     ) {
         validateSignedInUser(userId);
-        validateUpdateCommentRequest(request);
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ApiException(
@@ -316,12 +278,6 @@ public class PostService {
         comment.update(request.getContent());
 
         return new UpdateCommentResponse(comment.getCommentId());
-    }
-
-    private void validateUpdateCommentRequest(UpdateCommentRequest request) {
-        if (request == null || isBlank(request.getContent())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
-        }
     }
 
     public DeleteCommentResponse deleteComment(

@@ -57,7 +57,7 @@ public class PostController {
     public ResponseEntity<ApiResponse<UpdatePostResponse>> updatePost(
             @RequestHeader(value = "user_id", required = false) Long userId,
             @PathVariable("post_id") Long postId,
-            @RequestBody UpdatePostRequest request
+            @Valid @RequestBody UpdatePostRequest request
     ) {
         UpdatePostResponse response = postService.updatePost(userId, postId, request);
 
