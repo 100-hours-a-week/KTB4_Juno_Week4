@@ -42,19 +42,18 @@ public class UserService {
         return new SignupResponse(user.getUserId());
     }
 
-    public SigninResponse signin(SigninRequest request){
+    public SigninResponse signin(SigninRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ApiException(
                         HttpStatus.UNAUTHORIZED,
                         "이메일 또는 비밀번호가 일치하지 않습니다."
                 ));
 
-        if (user.isDeleted()) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-        }
-
-        if (!user.getPassword().equals(request.getPassword())) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다.");
+        if (!user.isPasswordMatched(request.getPassword())) {
+            throw new ApiException(
+                    HttpStatus.UNAUTHORIZED,
+                    "이메일 또는 비밀번호가 일치하지 않습니다."
+            );
         }
 
         loginSessionRepository.signin(user.getUserId());
