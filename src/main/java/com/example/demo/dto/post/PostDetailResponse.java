@@ -1,44 +1,22 @@
 package com.example.demo.dto.post;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 public class PostDetailResponse {
 
-    @JsonProperty("post_id")
-    private Long postId;
-
-    private String title;
-
-    private String content;
-
-    private String image;
-
-    @JsonProperty("like_count")
-    private int likeCount;
-
-    @JsonProperty("comment_count")
-    private int commentCount;
-
-    @JsonProperty("view_count")
-    private int viewCount;
-
-    private boolean liked;
-
-    @JsonProperty("created_at")
-    private String createdAt;
-
-    @JsonProperty("author_id")
-    private Long authorId;
-
-    @JsonProperty("author_nickname")
-    private String authorNickname;
-
-    @JsonProperty("author_profile_image")
-    private String authorProfileImage;
-
-    private List<PostDetailCommentResponse> comments;
+    private final Long postId;
+    private final String title;
+    private final String content;
+    private final String image;
+    private final int likeCount;
+    private final int commentCount;
+    private final int viewCount;
+    private final boolean liked;
+    private final String createdAt;
+    private final Long authorId;
+    private final String nickname;
+    private final String profileImage;
+    private final List<PostDetailCommentResponse> comments;
 
     public PostDetailResponse(
             Long postId,
@@ -51,8 +29,8 @@ public class PostDetailResponse {
             boolean liked,
             String createdAt,
             Long authorId,
-            String authorNickname,
-            String authorProfileImage,
+            String nickname,
+            String profileImage,
             List<PostDetailCommentResponse> comments
     ) {
         this.postId = postId;
@@ -65,8 +43,8 @@ public class PostDetailResponse {
         this.liked = liked;
         this.createdAt = createdAt;
         this.authorId = authorId;
-        this.authorNickname = authorNickname;
-        this.authorProfileImage = authorProfileImage;
+        this.nickname = nickname;
+        this.profileImage = profileImage;
         this.comments = comments;
     }
 
@@ -110,12 +88,12 @@ public class PostDetailResponse {
         return authorId;
     }
 
-    public String getAuthorNickname() {
-        return authorNickname;
+    public String getNickname() {
+        return nickname;
     }
 
-    public String getAuthorProfileImage() {
-        return authorProfileImage;
+    public String getProfileImage() {
+        return profileImage;
     }
 
     public List<PostDetailCommentResponse> getComments() {

@@ -119,7 +119,7 @@ public class PostService {
 
         int viewCount = postRepository.findViewCountByPostId(postId);
 
-        boolean liked = isLikedByUser(userId, post);
+        boolean liked = isLikedByUser(userId, postId);
 
         User author = post.getAuthor();
 
@@ -154,6 +154,7 @@ public class PostService {
                 comments
         );
     }
+
     public UpdatePostResponse updatePost(Long userId, Long postId, UpdatePostRequest request) {
         validateSignedInUser(userId);
 
@@ -404,18 +405,12 @@ public class PostService {
     }
 
 
-    private boolean isLikedByUser(Long userId, Post post) {
+    private boolean isLikedByUser(Long userId, Long postId) {
         if (userId == null || !loginSessionRepository.isSignedIn(userId)) {
             return false;
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ApiException(
-                        HttpStatus.UNAUTHORIZED,
-                        "로그인이 필요합니다."
-                ));
-
-        return likeRepository.existsByPostAndUser(post, user);
+        return likeRepository.existsById(new PostLikeId(postId, userId));
     }
 
     private void increaseViewCountIfNeeded(Long userId, Post post) {
