@@ -103,6 +103,7 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public UserInfoResponse getMyInfo(Long userId) {
         validateSignedInUser(userId);
 

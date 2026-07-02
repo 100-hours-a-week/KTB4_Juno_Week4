@@ -92,6 +92,7 @@ public class PostService {
         return value == null || value.trim().isEmpty();
     }
 
+    @Transactional(readOnly = true)
     public PostListResponse getPostList() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
