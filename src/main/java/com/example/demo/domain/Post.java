@@ -125,7 +125,7 @@ public class Post {
         }
 
         if (image != null) {
-            this.image = image;
+            this.image = image.isBlank() ? null : image;
         }
     }
 
